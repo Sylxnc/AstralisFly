@@ -1,0 +1,22 @@
+mongodb:
+  uri: "mongodb://localhost:27017"
+  database: "flytime"
+  collection: "players"
+redis:
+  host: "localhost"
+  port: 6379
+  password: ""
+
+vote-groups:
+  default:
+    minutes: 5
+    permission: "flytime.vote.default"
+  vip:
+    minutes: 10
+    permission: "flytime.vote.vip"
+  mvp:
+    minutes: 20
+    permission: "flytime.vote.mvp"
+  admin:
+    minutes: 60
+    permission: "flytime.vote.admin"

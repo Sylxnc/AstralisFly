@@ -1,0 +1,16 @@
+name: AstralisFly
+version: 1.0-SNAPSHOT
+main: net.astralis.flytime.Main
+api-version: '1.21'
+depend: [LumaxiaEssentials]
+commands:
+  fly:
+    description: ғʟʏ ᴍᴏᴅᴜs ᴜᴍsᴄʜᴀʟᴛᴇɴ
+    usage: /fly
+  flytime:
+    description: ᴠᴇʀᴡᴀʟᴛᴇ ᴅᴇɪɴᴇ ғʟʏᴛɪᴍᴇ
+    usage: /flytime [pay|add|coupon]
+  flytimevote:
+    description: ғʟʏᴛɪᴍᴇ ᴅᴜʀᴄʜ ᴠᴏᴛᴇ ᴇʀʜᴀʟᴛᴇɴ
+    usage: /flytimevote <player>
+    permission: flytime.admin
