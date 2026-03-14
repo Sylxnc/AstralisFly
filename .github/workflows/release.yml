@@ -26,8 +26,40 @@ jobs:
           server-username: MAVEN_USERNAME
           server-password: MAVEN_TOKEN
 
-      - name: Build & Deploy to GitHub Packages
-        run: mvn -B clean deploy --no-transfer-progress -DskipTests
+      - name: Validate tag version matches pom.xml
+        id: version
+        run: |
+          TAG_VERSION="${GITHUB_REF_NAME#v}"
+          POM_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
+          echo "tag=${TAG_VERSION}" >> $GITHUB_OUTPUT
+          echo "pom=${POM_VERSION}" >> $GITHUB_OUTPUT
+          if [ "${TAG_VERSION}" != "${POM_VERSION}" ]; then
+            echo "::error::Tag version (${TAG_VERSION}) passt nicht zu pom.xml Version (${POM_VERSION}). Bitte pom.xml anheben und neuen Tag pushen."
+            exit 1
+          fi
+
+      - name: Check if package version already exists
+        id: pkg
+        run: |
+          OWNER="${{ github.repository_owner }}"
+          PACKAGE_NAME="net.astralis.astralisfly"
+          VERSION="${{ steps.version.outputs.pom }}"
+          VERSION_ID=$(gh api "users/${OWNER}/packages/maven/${PACKAGE_NAME}/versions" --jq ".[] | select(.name==\"${VERSION}\") | .id" 2>/dev/null || true)
+          if [ -n "${VERSION_ID}" ]; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+            echo "::notice::Version ${VERSION} existiert bereits in GitHub Packages. Deploy wird uebersprungen (Re-Run)."
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+          fi
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build JAR
+        run: mvn -B clean package --no-transfer-progress -DskipTests
+
+      - name: Deploy to GitHub Packages
+        if: steps.pkg.outputs.exists == 'false'
+        run: mvn -B deploy --no-transfer-progress -DskipTests
         env:
           MAVEN_USERNAME: ${{ github.actor }}
           MAVEN_TOKEN: ${{ secrets.GITHUB_TOKEN }}
