@@ -38,8 +38,8 @@ public class BrigadierCommandRegistrar {
     public void register() {
         plugin.getLifecycleManager().registerEventHandler(LifecycleEvents.COMMANDS, event -> {
             Commands registrar = event.registrar();
-            registrar.register(buildFlyCommand(), "Toggle fly mode");
-            registrar.register(buildFlyTimeCommand(), "Manage fly time");
+            registrar.register(buildFlyCommand().build(), "Toggle fly mode");
+            registrar.register(buildFlyTimeCommand().build(), "Manage fly time");
         });
     }
 

@@ -2,12 +2,10 @@ package net.astralis.flytime.cache;
 
 import com.google.gson.Gson;
 import net.astralis.flytime.models.PlayerModel;
-import redis.clients.jedis.DefaultJedisClientConfig;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
 
-import java.time.Duration;
 import java.util.UUID;
 
 public class RedisPlayerCache implements PlayerCache {
@@ -23,14 +21,8 @@ public class RedisPlayerCache implements PlayerCache {
         poolConfig.setMaxIdle(8);
         poolConfig.setMinIdle(1);
 
-        DefaultJedisClientConfig.Builder clientConfig = DefaultJedisClientConfig.builder()
-                .socketTimeoutMillis((int) Duration.ofSeconds(2).toMillis())
-                .connectionTimeoutMillis((int) Duration.ofSeconds(2).toMillis());
-        if (password != null && !password.isBlank()) {
-            clientConfig.password(password);
-        }
-
-        this.jedisPool = new JedisPool(poolConfig, host, port, clientConfig.build());
+        String redisPassword = (password == null || password.isBlank()) ? null : password;
+        this.jedisPool = new JedisPool(poolConfig, host, port, null, redisPassword);
         this.gson = new Gson();
     }
 
