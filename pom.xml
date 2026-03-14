@@ -144,6 +144,15 @@
 
     </dependencies>
 
+    <!-- GitHub Packages Publishing -->
+    <distributionManagement>
+        <repository>
+            <id>github</id>
+            <name>GitHub Packages</name>
+            <url>https://maven.pkg.github.com/sylxnc/AstralisFly</url>
+        </repository>
+    </distributionManagement>
+
     <build>
 
         <plugins>

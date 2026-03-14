@@ -2,27 +2,26 @@ name: CI
 
 on:
   push:
-    branches: [ "main", "master" ]
+    branches: [ "**" ]
   pull_request:
+    branches: [ "**" ]
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set up JDK 21
+      - name: Set up Java 21
         uses: actions/setup-java@v4
         with:
-          distribution: temurin
           java-version: '21'
+          distribution: 'temurin'
           cache: maven
 
-      - name: Remove potentially corrupted Maven artifacts
-        run: |
-          rm -rf ~/.m2/repository/net/kyori/adventure-api
-
-      - name: Build and test
-        run: mvn -B -U clean verify
-
+      - name: Build & Test
+        run: mvn clean verify --no-transfer-progress

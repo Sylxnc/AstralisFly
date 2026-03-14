@@ -1,37 +1,40 @@
 name: Release
 
 on:
-  workflow_dispatch:
   push:
     tags:
-      - 'v*'
+      - 'v*.*.*'
 
 jobs:
   release:
     runs-on: ubuntu-latest
     permissions:
-      contents: write
+      contents: write       # GitHub Release erstellen
+      packages: write       # GitHub Packages veröffentlichen
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set up JDK 21
+      - name: Set up Java 21 (GitHub Packages)
         uses: actions/setup-java@v4
         with:
-          distribution: temurin
           java-version: '21'
+          distribution: 'temurin'
           cache: maven
+          # Generiert automatisch ~/.m2/settings.xml mit dem github-Server
+          server-id: github
+          server-username: MAVEN_USERNAME
+          server-password: MAVEN_TOKEN
 
-      - name: Remove potentially corrupted Maven artifacts
-        run: |
-          rm -rf ~/.m2/repository/net/kyori/adventure-api
+      - name: Build & Deploy to GitHub Packages
+        run: mvn clean deploy --no-transfer-progress -DskipTests
+        env:
+          MAVEN_USERNAME: ${{ github.actor }}
+          MAVEN_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build package
-        run: mvn -B -U -DskipTests clean package
-
-      - name: Upload release artifacts
+      - name: Upload JAR as GitHub Release Asset
         uses: softprops/action-gh-release@v2
-        if: startsWith(github.ref, 'refs/tags/')
         with:
-          files: target/*.jar
-
+          files: target/AstralisFly-*.jar
+          generate_release_notes: true
