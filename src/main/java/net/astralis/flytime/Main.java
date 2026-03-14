@@ -29,8 +29,12 @@ public class Main extends JavaPlugin {
 
         getServer().getPluginManager().registerEvents(new PlayerListener(flyTimeService), this);
         getServer().getPluginManager().registerEvents(new CouponListener(this, flyTimeService), this);
-        getServer().getPluginManager().registerEvents(new VoteListener(this, flyTimeService), this);
-        getLogger().info("NuVotifier hook enabled.");
+        if (getServer().getPluginManager().isPluginEnabled("NuVotifier")) {
+            getServer().getPluginManager().registerEvents(new VoteListener(this, flyTimeService), this);
+            getLogger().info("NuVotifier hook enabled.");
+        } else {
+            getLogger().info("NuVotifier not found. Vote rewards are disabled.");
+        }
 
         Bukkit.getScheduler().runTaskTimer(this, () -> flyTimeService.tick(), 20L, 20L);
         Bukkit.getScheduler().runTaskTimerAsynchronously(this, () -> flyTimeService.saveAllAsync(), 30 * 20L, 30 * 20L);
