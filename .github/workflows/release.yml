@@ -27,8 +27,25 @@ jobs:
           server-username: MAVEN_USERNAME
           server-password: MAVEN_TOKEN
 
-      - name: Build & Deploy to GitHub Packages
-        run: mvn clean deploy --no-transfer-progress -DskipTests
+      - name: Build JAR
+        run: mvn clean package --no-transfer-progress -DskipTests
+
+      - name: Get project version
+        id: project
+        run: echo "version=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)" >> $GITHUB_OUTPUT
+
+      - name: Deploy to GitHub Packages
+        run: |
+          mvn deploy:deploy-file \
+            --no-transfer-progress \
+            -Dfile=target/AstralisFly-${{ steps.project.outputs.version }}.jar \
+            -DgroupId=net.astralis \
+            -DartifactId=AstralisFly \
+            -Dversion=${{ steps.project.outputs.version }} \
+            -Dpackaging=jar \
+            -DrepositoryId=github \
+            -Durl=https://maven.pkg.github.com/sylxnc/AstralisFly \
+            -DgeneratePom=true
         env:
           MAVEN_USERNAME: ${{ github.actor }}
           MAVEN_TOKEN: ${{ secrets.GITHUB_TOKEN }}
