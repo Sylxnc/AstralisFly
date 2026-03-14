@@ -1,11 +1,29 @@
-mongodb:
-  uri: "mongodb://localhost:27017"
-  database: "flytime"
-  collection: "players"
-redis:
-  host: "localhost"
-  port: 6379
-  password: ""
+storage:
+  # Supported values: mongodb, mysql, sqlite
+  type: "mongodb"
+
+  mongodb:
+    uri: "mongodb://localhost:27017"
+    database: "flytime"
+    collection: "players"
+
+  mysql:
+    host: "localhost"
+    port: 3306
+    database: "flytime"
+    username: "root"
+    password: ""
+
+  # Intended for single-server setups.
+  sqlite:
+    file: "flytime.db"
+
+cache:
+  redis:
+    enabled: false
+    host: "localhost"
+    port: 6379
+    password: ""
 
 vote-groups:
   default:

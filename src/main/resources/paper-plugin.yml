@@ -1,0 +1,26 @@
+name: AstralisFly
+version: '1.0.0'
+main: net.astralis.flytime.Main
+api-version: '1.21'
+authors:
+  - Astralis
+
+permissions:
+  flytime.admin:
+    default: op
+  flytime.vote.default:
+    default: true
+  flytime.vote.vip:
+    default: false
+  flytime.vote.mvp:
+    default: false
+  flytime.vote.admin:
+    default: op
+
+dependencies:
+  server:
+    NuVotifier:
+      required: true
+    LumaxiaEssentials:
+      required: false
+

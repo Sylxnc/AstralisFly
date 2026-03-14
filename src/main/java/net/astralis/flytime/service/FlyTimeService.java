@@ -1,8 +1,10 @@
 package net.astralis.flytime.service;
 
-import net.astralis.flytime.database.CacheManager;
-import net.astralis.flytime.database.DatabaseManager;
+import net.astralis.flytime.Main;
+import net.astralis.flytime.cache.PlayerCache;
 import net.astralis.flytime.models.PlayerModel;
+import net.astralis.flytime.storage.PlayerStorage;
+import net.astralis.flytime.util.Chat;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
@@ -12,59 +14,73 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class FlyTimeService {
 
-    private static final String PREFIX = "§x§2§2§D§3§E§Eʟ§x§2§B§B§D§F§0ᴜ§x§3§3§A§7§F§2ᴍ§x§3§B§8§2§F§6ᴀ§x§6§0§7§3§F§6x§x§8§4§6§4§F§6ɪ§x§A§8§5§5§F§7ᴀ §7✦ ";
+    private final Main plugin;
     private final Map<UUID, PlayerModel> models = new ConcurrentHashMap<>();
-    private final DatabaseManager databaseManager;
-    private final CacheManager cacheManager;
+    private final PlayerStorage storage;
+    private final PlayerCache cache;
 
-    public FlyTimeService(DatabaseManager databaseManager, CacheManager cacheManager) {
-        this.databaseManager = databaseManager;
-        this.cacheManager = cacheManager;
+    public FlyTimeService(Main plugin, PlayerStorage storage, PlayerCache cache) {
+        this.plugin = plugin;
+        this.storage = storage;
+        this.cache = cache;
     }
 
     public void loadPlayer(UUID uuid) {
-        PlayerModel model = cacheManager.getCachedPlayer(uuid);
+        PlayerModel model = cache.get(uuid);
         if (model == null) {
-            model = databaseManager.loadPlayer(uuid);
+            model = storage.loadPlayer(uuid);
         }
-        
+
         if (model == null) {
             model = new PlayerModel(0);
         }
-        
+
         models.put(uuid, model);
-        cacheManager.cachePlayer(uuid, model);
+        cache.put(uuid, model);
+    }
+
+    public PlayerModel getOrLoadModel(UUID uuid) {
+        PlayerModel model = models.get(uuid);
+        if (model != null) {
+            return model;
+        }
+
+        loadPlayer(uuid);
+        return models.getOrDefault(uuid, new PlayerModel(0));
+    }
+
+    public void addFlyTime(UUID uuid, long seconds) {
+        PlayerModel model = getOrLoadModel(uuid);
+        model.addFlyTime(seconds);
+        models.put(uuid, model);
     }
 
     public void saveAndUnloadPlayer(UUID uuid) {
         PlayerModel model = models.remove(uuid);
         if (model != null) {
-            databaseManager.savePlayer(uuid, model);
-            cacheManager.cachePlayer(uuid, model);
+            storage.savePlayer(uuid, model);
+            cache.put(uuid, model);
         }
     }
 
     public void savePlayerAsync(UUID uuid) {
         PlayerModel model = models.get(uuid);
         if (model != null) {
-            Bukkit.getScheduler().runTaskAsynchronously(Bukkit.getPluginManager().getPlugin("AstralisFly"), () -> {
-                databaseManager.savePlayer(uuid, model);
-                cacheManager.cachePlayer(uuid, model);
-            });
+            Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> savePlayerSync(uuid, model));
         }
     }
 
+    private void savePlayerSync(UUID uuid, PlayerModel model) {
+        storage.savePlayer(uuid, model);
+        cache.put(uuid, model);
+    }
+
     public void saveAll() {
-        models.forEach(databaseManager::savePlayer);
+        models.forEach(this::savePlayerSync);
     }
 
     public void saveAllAsync() {
-        models.forEach((uuid, model) -> {
-            Bukkit.getScheduler().runTaskAsynchronously(Bukkit.getPluginManager().getPlugin("AstralisFly"), () -> {
-                databaseManager.savePlayer(uuid, model);
-                cacheManager.cachePlayer(uuid, model);
-            });
-        });
+        models.forEach((uuid, model) -> Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> savePlayerSync(uuid, model)));
     }
 
     public PlayerModel getModel(UUID uuid) {
@@ -82,10 +98,16 @@ public class FlyTimeService {
                     if (player != null) {
                         player.setFlying(false);
                         player.setAllowFlight(false);
-                        player.sendMessage(PREFIX + "§x§E§F§4§4§4§4ᴅᴇɪɴᴇ ғʟʏᴛɪᴍᴇ ɪsᴛ ᴀʙɢᴇʟᴀᴜғᴇɴ!");
+                        player.sendMessage(Chat.PREFIX + "Your fly time has expired.");
                     }
                 }
             }
         }
+    }
+
+    public void close() {
+        saveAll();
+        cache.close();
+        storage.close();
     }
 }
