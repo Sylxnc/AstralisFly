@@ -22,8 +22,12 @@ jobs:
           java-version: '21'
           cache: maven
 
+      - name: Remove potentially corrupted Maven artifacts
+        run: |
+          rm -rf ~/.m2/repository/net/kyori/adventure-api
+
       - name: Build package
-        run: mvn -B -DskipTests clean package
+        run: mvn -B -U -DskipTests clean package
 
       - name: Upload release artifacts
         uses: softprops/action-gh-release@v2

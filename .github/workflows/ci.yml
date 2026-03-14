@@ -19,6 +19,10 @@ jobs:
           java-version: '21'
           cache: maven
 
+      - name: Remove potentially corrupted Maven artifacts
+        run: |
+          rm -rf ~/.m2/repository/net/kyori/adventure-api
+
       - name: Build and test
-        run: mvn -B clean verify
+        run: mvn -B -U clean verify
 
