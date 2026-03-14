@@ -191,7 +191,7 @@
 
                         <configuration>
 
-                            <createDependencyReducedPom>true</createDependencyReducedPom>
+                            <createDependencyReducedPom>false</createDependencyReducedPom>
 
                             <relocations>
 
