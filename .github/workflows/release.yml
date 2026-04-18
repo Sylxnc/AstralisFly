@@ -65,7 +65,7 @@ jobs:
           MAVEN_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Upload JAR as GitHub Release Asset
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           files: target/astralisfly-*.jar
           generate_release_notes: true
